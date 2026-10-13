@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffd400">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>Conferidor de Preços</title>
+<style>
+:root{--bg:#eceff1;--cd:#fff;--tx:#161b22;--mu:#5d6772;--bd:#d3d9de;--tag:#ffd400;--ok:#0d7a3e;--bad:#c62828;--pr:#161b22}
+@media(prefers-color-scheme:dark){:root{--bg:#10141a;--cd:#1a2029;--tx:#eef1f4;--mu:#98a3af;--bd:#2c3540;--ok:#4cd488;--bad:#ff7b72;--pr:#ffd400}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{padding-top:env(safe-area-inset-top,0)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom,0));font-variant-numeric:tabular-nums}
+header{position:sticky;top:env(safe-area-inset-top,0);z-index:5;background:var(--tag);color:#161b22;padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #161b22}
+header small{display:block;font-size:12px;font-weight:600;opacity:.75}
+header b{font-size:30px;line-height:1;font-weight:900;letter-spacing:-1px}
+header .r{text-align:right}header .r b{font-size:20px}
+.bad{color:var(--bad)}.ok{color:var(--ok)}header .bad{color:#b00020}header .ok{color:#0a5c2e}
+main{padding:12px;max-width:560px;margin:auto}
+.tab{display:none}.tab.on{display:block}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mu{color:var(--mu);font-size:14px}
+button{font:inherit;border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:8px;padding:9px 13px;min-height:42px}
+button.p{background:#161b22;color:#ffd400;border-color:#161b22;font-weight:800}
+@media(prefers-color-scheme:dark){button.p{background:#ffd400;color:#161b22;border-color:#ffd400}}
+button.w{width:100%}
+input{font:inherit;width:100%;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;padding:10px;min-height:44px}
+input:focus,button:focus-visible{outline:3px solid #ffd400;outline-offset:1px}
+.cam{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;margin-bottom:10px}
+video{width:100%;height:100%;object-fit:cover;display:block}
+.ret{position:absolute;left:5%;right:5%;top:30%;height:40%;border:3px solid #ffd400;border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.45);pointer-events:none}
+.cam p{position:absolute;inset:auto 0 8px;margin:0;text-align:center;color:#fff;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:2px solid var(--bd);border-radius:8px;padding:6px 12px;font-weight:800;font-size:20px}
+.chip.s{background:var(--tag);color:#161b22;border-color:#161b22}
+.warn{background:#fff3cd;color:#5c4400;border-radius:8px;padding:8px 10px;font-size:14px;margin:8px 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.big{font-size:22px;font-weight:900}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0)}
+nav button{flex:1;border:0;border-radius:0;min-height:60px;background:none;font-weight:700;color:var(--mu)}
+nav button.on{color:var(--tx);box-shadow:inset 0 -4px 0 #ffd400}
+.q{display:inline-flex;gap:6px;align-items:center}
+.dv{font-weight:800;padding:2px 8px;border-radius:6px;font-size:14px}
+.dv.bad{background:rgba(198,40,40,.14)}.dv.ok{background:rgba(13,122,62,.14)}
+@media(prefers-reduced-motion:no-preference){.chip,button{transition:transform .08s}button:active{transform:scale(.97)}}
+</style></head><body>
+<header><div><small id="cnt">0 itens</small><b id="tot">R$ 0,00</b><small>total nas etiquetas</small></div>
+<div class="r"><small>diferença no caixa</small><b id="dif">R$ 0,00</b></div></header>
+<main>
+<section class="tab on" id="t0">
+ <div class="cam"><video id="v" playsinline muted></video><div class="ret"></div><p id="st">Câmera desligada</p></div>
+ <div class="g2"><button class="w" id="bc">Ligar câmera</button><button class="w p" id="bl">Ler etiqueta</button></div>
+ <div class="cd" style="margin-top:10px">
+  <div class="mu">Preços encontrados (toque para escolher)</div>
+  <div class="chips" id="chips"><span class="mu">Nenhuma leitura ainda. Você também pode digitar abaixo.</span></div>
+  <div id="aviso"></div>
+  <label class="mu">Produto</label><input id="n" placeholder="Ex.: Arroz 5 kg" autocomplete="off">
+  <div class="g2" style="margin-top:8px">
+   <div><label class="mu">Preço da etiqueta (R$)</label><input id="p" inputmode="decimal" placeholder="8,99"></div>
+   <div><label class="mu">Quantidade</label><input id="q" inputmode="numeric" value="1"></div>
+  </div>
+  <button class="p w" id="add" style="margin-top:10px">Adicionar ao carrinho</button>
+ </div>
+</section>
+<section class="tab" id="t1"><div id="lista"></div><button class="p w" id="fin" style="margin-bottom:8px">Finalizar compra</button><button class="w" id="lim">Limpar carrinho</button></section>
+<section class="tab" id="t2">
+ <p class="mu">No caixa, digite o preço unitário cobrado de cada item. Use “=” quando for igual à etiqueta.</p>
+ <div id="conf"></div>
+ <div class="cd"><label class="mu">Total do cupom fiscal (opcional)</label><input id="cup" inputmode="decimal" placeholder="0,00"><div id="cres" style="margin-top:8px"></div></div>
+ <button class="p w" id="rel">Compartilhar divergências</button>
+</section>
+<section class="tab" id="t3">
+ <div class="cd"><b>Nuvem (Supabase)</b><p class="mu" id="sbs">Desconectado. Os dados ficam só neste aparelho.</p>
+ <input id="su" placeholder="Project URL (https://xxxx.supabase.co)" autocomplete="off" style="margin-bottom:8px">
+ <input id="sk" placeholder="Chave anon / publishable" autocomplete="off" style="margin-bottom:8px">
+ <input id="se" type="email" placeholder="E-mail do usuário" style="margin-bottom:8px">
+ <input id="sp" type="password" placeholder="Senha" style="margin-bottom:8px">
+ <button class="p w" id="cnx">Conectar</button></div>
+ <div id="hist"></div>
+</section>
+</main>
+<nav><button class="on" data-t="0">Ler</button><button data-t="1">Carrinho</button><button data-t="2">Caixa</button><button data-t="3">Histórico</button></nav>
+<script>
+const $=s=>document.querySelector(s);
+let S={items:[],cupom:''};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem('cp')||'{}'))}catch(e){}
+const loc=()=>{try{localStorage.setItem('cp',JSON.stringify(S))}catch(e){}};
+const save=()=>{loc();push()};
+const brl=n=>(n==null||isNaN(n))?'—':n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const num=s=>{s=String(s||'').replace(/[^\d,.]/g,'');if(/,\d{1,2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return parseFloat(s)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const st=t=>$('#st').textContent=t;
+const f=i=>S.items.find(x=>x.id===i);
+
+/* PWA leve: manifesto embutido */
+try{const ic='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="#ffd400"/><text x="50" y="66" font-size="46" font-weight="900" text-anchor="middle" font-family="Arial" fill="#161b22">R$</text></svg>');
+const m={name:'Conferidor de Preços',short_name:'Preços',display:'standalone',start_url:location.href,background_color:'#ffd400',theme_color:'#ffd400',icons:[{src:ic,sizes:'any',type:'image/svg+xml',purpose:'any'}]};
+const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(l)}catch(e){}
+
+/* Abas */
+function go(n){document.querySelectorAll('.tab').forEach((e,i)=>e.classList.toggle('on',i==n));document.querySelectorAll('nav button').forEach((e,i)=>e.classList.toggle('on',i==n));if(n!=0)stop();window.scrollTo(0,0)}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(+b.dataset.t));
+
+/* Câmera */
+let stream;
+function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;$('#v').srcObject=null;st('Câmera desligada');$('#bc').textContent='Ligar câmera'}}
+$('#bc').onclick=async()=>{
+ if(stream)return stop();
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false});
+  $('#v').srcObject=stream;await $('#v').play();st('Enquadre o preço dentro do retângulo');$('#bc').textContent='Desligar câmera'}
+ catch(e){st('Sem acesso à câmera. Digite o preço manualmente.')}};
+
+/* OCR (Tesseract.js, gratuito, carregado sob demanda) */
+let tl;
+const load=()=>window.Tesseract?Promise.resolve():tl||(tl=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=ok;s.onerror=()=>{tl=null;no()};document.head.appendChild(s)}));
+function grab(){
+ const v=$('#v'),W=v.videoWidth,H=v.videoHeight;
+ const sx=W*.05,sw=W*.9,sy=H*.3,sh=H*.4,k=Math.min(1.6,1400/sw);
+ const c=document.createElement('canvas');c.width=sw*k;c.height=sh*k;
+ const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
+ const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+ for(let i=0;i<p.length;i+=4){let g=.3*p[i]+.59*p[i+1]+.11*p[i+2];g=Math.max(0,Math.min(255,(g-128)*1.5+128));p[i]=p[i+1]=p[i+2]=g}
+ x.putImageData(d,0,0);return c}
+$('#bl').onclick=async()=>{
+ if(!stream)return st('Ligue a câmera primeiro');
+ const b=$('#bl');b.disabled=true;st('Lendo etiqueta…');
+ try{
+  await load();
+  const r=await Tesseract.recognize(grab(),'por');
+  const found={};
+  (r.data.words||[]).forEach(w=>{const m=w.text.replace(/R\$/i,'').trim().match(/^(\d{1,4})[,.](\d{2})$/);
+   if(m){const v=+(m[1]+'.'+m[2]),h=w.bbox.y1-w.bbox.y0;if(!(found[v]>h))found[v]=h}});
+  if(!Object.keys(found).length)(r.data.text.match(/\d{1,4}[,.]\d{2}(?!\d)/g)||[]).forEach(t=>found[+t.replace(',','.')]=1);
+  const list=Object.entries(found).sort((a,b)=>b[1]-a[1]).map(e=>+e[0]);
+  chips(list);
+  const lines=r.data.text.split('\n').map(s=>s.trim());
+  const nm=lines.find(l=>/[A-Za-zÀ-ú]{4,}/.test(l)&&!/\d[,.]\d{2}/.test(l));
+  if(nm&&!$('#n').value)$('#n').value=nm.slice(0,60);
+  const T=r.data.text.toLowerCase(),A=[];
+  if(/\/\s?kg|\bkg\b|\bg\b|\bml\b|litro|\blt?\b/.test(T))A.push('A etiqueta cita peso ou volume: confira se o preço grande é da unidade ou por kg/litro.');
+  if(/leve|pague|a partir|acima de|atacado|\d\s?x\s?\d|cart[aã]o|clube/.test(T))A.push('Parece promoção condicional: o preço pode valer só com quantidade mínima, cartão ou clube.');
+  $('#aviso').innerHTML=A.map(a=>`<div class="warn">${a}</div>`).join('');
+  st(list.length?'Leitura concluída':'Não achei preço. Aproxime e tente de novo, ou digite.');
+  if(navigator.vibrate)navigator.vibrate(40);
+ }catch(e){st('OCR indisponível (precisa de internet na 1ª vez). Digite o preço.')}
+ b.disabled=false};
+function chips(l){
+ $('#chips').innerHTML=l.length?l.map((v,i)=>`<button class="chip${i?'':' s'}" data-v="${v}">${brl(v)}</button>`).join(''):'<span class="mu">Nenhum preço lido.</span>';
+ if(l.length)$('#p').value=String(l[0]).replace('.',',');
+ document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('s'));c.classList.add('s');$('#p').value=c.dataset.v.replace('.',',')})}
+
+/* Carrinho */
+$('#add').onclick=()=>{
+ const p=num($('#p').value),q=Math.max(1,parseInt($('#q').value)||1);
+ if(!(p>0))return st('Informe um preço válido');
+ S.items.push({id:Date.now()+Math.random(),n:$('#n').value.trim()||'Item '+(S.items.length+1),p,q,c:null});
+ $('#n').value='';$('#p').value='';$('#q').value='1';$('#aviso').innerHTML='';
+ $('#chips').innerHTML='<span class="mu">Item adicionado. Leia a próxima etiqueta.</span>';
+ save();R();st('Adicionado ao carrinho')};
+const qty=(i,d)=>{const x=f(i);x.q=Math.max(1,x.q+d);save();R()};
+const rm=i=>{S.items=S.items.filter(x=>x.id!==i);save();R()};
+const ed=i=>{const x=f(i),v=prompt('Preço da etiqueta de '+x.n,String(x.p).replace('.',','));if(v!==null&&num(v)>0){x.p=num(v);save();R()}};
+const sc=(i,v)=>{f(i).c=v.trim()===''?null:num(v);save();R()};
+const eq=i=>{const x=f(i);x.c=x.p;save();R()};
+$('#lim').onclick=()=>{if(S.items.length&&confirm('Apagar todos os itens?')){S.items=[];S.cupom='';save();R()}};
+$('#cup').onchange=e=>{S.cupom=e.target.value;save();R()};
+
+/* Divergências */
+const divs=()=>S.items.filter(i=>i.c!=null&&Math.abs(i.c-i.p)>0.004);
+$('#rel').onclick=async()=>{
+ const d=divs();if(!d.length)return alert('Nenhuma divergência registrada.');
+ const t='Divergências de preço:\n'+d.map(i=>`• ${i.n}: etiqueta ${brl(i.p)}, caixa ${brl(i.c)} (${i.c>i.p?'+':''}${brl((i.c-i.p)*i.q)} em ${i.q} un.)`).join('\n')+'\nTotal: '+brl(d.reduce((a,i)=>a+(i.c-i.p)*i.q,0));
+ try{if(navigator.share)await navigator.share({text:t});else{await navigator.clipboard.writeText(t);alert('Copiado!')}}catch(e){}};
+
+function R(){
+ const it=S.items,exp=it.reduce((a,i)=>a+i.p*i.q,0),dif=it.reduce((a,i)=>a+(i.c==null?0:(i.c-i.p)*i.q),0);
+ $('#tot').textContent=brl(exp);$('#cnt').textContent=it.reduce((a,i)=>a+i.q,0)+' un. · '+it.length+' itens';
+ const d=$('#dif');d.textContent=(dif>0.004?'+':'')+brl(dif);d.className=dif>0.004?'bad':dif<-0.004?'ok':'';
+ $('#lista').innerHTML=it.map(i=>`<div class="cd"><div class="row"><b>${esc(i.n)}</b><span class="big">${brl(i.p*i.q)}</span></div>
+ <div class="row"><span class="mu">${i.q} × ${brl(i.p)}</span><span class="q"><button onclick="qty(${i.id},-1)" aria-label="Menos">−</button><button onclick="qty(${i.id},1)" aria-label="Mais">+</button><button onclick="ed(${i.id})" aria-label="Editar preço">Editar</button><button onclick="rm(${i.id})" aria-label="Remover">Remover</button></span></div></div>`).join('')||'<p class="mu">Carrinho vazio. Leia uma etiqueta na aba Ler.</p>';
+ $('#conf').innerHTML=it.map(i=>{const df=i.c==null?null:(i.c-i.p)*i.q,bad=df!=null&&Math.abs(df)>0.004;
+  return `<div class="cd"><div class="row"><b>${esc(i.n)}</b><span class="mu">Etiqueta ${brl(i.p)}</span></div>
+ <div class="row" style="margin-top:8px"><input inputmode="decimal" placeholder="Cobrado no caixa" value="${i.c==null?'':String(i.c).replace('.',',')}" onchange="sc(${i.id},this.value)"><button onclick="eq(${i.id})" aria-label="Igual à etiqueta">=</button></div>
+ ${df==null?'':`<div style="margin-top:8px"><span class="dv ${bad?(df>0?'bad':'ok'):'ok'}">${bad?(df>0?'Cobrado a mais: ':'Cobrado a menos: ')+brl(Math.abs(df)):'Preço correto'}</span></div>`}</div>`}).join('')||'<p class="mu">Adicione itens ao carrinho primeiro.</p>';
+ const ct=num(S.cupom);$('#cup').value=S.cupom||'';
+ $('#cres').innerHTML=ct>0?`<span class="dv ${Math.abs(ct-exp)>0.004?(ct>exp?'bad':'ok'):'ok'}">${Math.abs(ct-exp)<=0.004?'Cupom bate com as etiquetas':'Cupom '+(ct>exp?'acima':'abaixo')+' das etiquetas em '+brl(Math.abs(ct-exp))}</span>`:'<span class="mu">Compara o total do cupom com a soma das etiquetas.</span>'}
+/* Supabase (REST puro, sem biblioteca) */
+let C={},pt;try{C=JSON.parse(localStorage.getItem('cpsb')||'{}')}catch(e){}
+const sv=()=>{try{localStorage.setItem('cpsb',JSON.stringify(C))}catch(e){}};
+const ss=t=>$('#sbs').textContent=t;
+const T=()=>S.items.reduce((a,i)=>a+i.p*i.q,0),D=()=>S.items.reduce((a,i)=>a+(i.c==null?0:(i.c-i.p)*i.q),0);
+async function auth(body,type){
+ const r=await fetch(C.u+'/auth/v1/token?grant_type='+type,{method:'POST',headers:{apikey:C.k,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const j=await r.json();if(!r.ok)throw new Error(j.error_description||j.msg||'Falha no login');
+ C.t=j.access_token;C.r=j.refresh_token;C.x=Date.now()+j.expires_in*1000-60000;sv()}
+async function api(path,opt={}){
+ if(!C.t)throw new Error('Desconectado');
+ if(Date.now()>C.x)await auth({refresh_token:C.r},'refresh_token');
+ const r=await fetch(C.u+'/rest/v1/'+path,{...opt,headers:{apikey:C.k,Authorization:'Bearer '+C.t,'Content-Type':'application/json',...(opt.headers||{})}});
+ if(!r.ok)throw new Error(await r.text());
+ return r.status===204?null:r.json()}
+function push(){if(!C.t)return;clearTimeout(pt);pt=setTimeout(()=>sync(),800)}
+async function sync(status='aberta'){
+ if(!S.items.length&&!S.sent&&status==='aberta')return true;
+ if(!S.cid){S.cid=crypto.randomUUID();loc()}
+ try{ss('Sincronizando…');
+  await api('compras?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+   body:JSON.stringify({id:S.cid,status,itens:S.items,cupom:S.cupom||'',total_etiquetas:T(),total_diferenca:D(),atualizada_em:new Date().toISOString()})});
+  S.sent=true;loc();ss('Salvo na nuvem ✓');return true}
+ catch(e){ss('Sem conexão: fica salvo no aparelho e envia depois');return false}}
+async function pull(){
+ const a=await api('compras?status=eq.aberta&order=atualizada_em.desc&limit=1');
+ if(a[0]&&!S.items.length){S.cid=a[0].id;S.items=a[0].itens||[];S.cupom=a[0].cupom||'';S.sent=true;loc();R()}}
+async function H(){
+ if(!C.t){$('#hist').innerHTML='<p class="mu">Conecte-se para ver o histórico de compras.</p>';return}
+ try{const a=await api('compras?status=eq.finalizada&order=atualizada_em.desc&limit=30');
+  $('#hist').innerHTML=a.map(c=>{const it=c.itens||[],df=+c.total_diferenca;
+   return `<div class="cd"><div class="row"><b>${new Date(c.atualizada_em).toLocaleDateString('pt-BR')}</b><span class="big">${brl(+c.total_etiquetas)}</span></div>
+   <div class="row"><span class="mu">${it.length} itens</span><span class="dv ${df>0.004?'bad':'ok'}">${df>0.004?'Cobrado a mais: '+brl(df):'Sem cobrança a mais'}</span></div>
+   <details style="margin:8px 0"><summary class="mu">Ver itens</summary>${it.map(i=>`<div class="row mu"><span>${esc(i.n)} (${i.q}×)</span><span>${brl(i.p)}${i.c!=null&&Math.abs(i.c-i.p)>0.004?' → '+brl(i.c):''}</span></div>`).join('')}</details>
+   <button onclick="dh('${c.id}')">Apagar</button></div>`}).join('')||'<p class="mu">Nenhuma compra finalizada ainda.</p>'}
+ catch(e){$('#hist').innerHTML='<p class="mu">Não foi possível carregar o histórico agora.</p>'}}
+const dh=async id=>{if(confirm('Apagar esta compra do histórico?')){try{await api('compras?id=eq.'+id,{method:'DELETE'});H()}catch(e){}}};
+$('#cnx').onclick=async()=>{
+ C.u=$('#su').value.trim().replace(/\/+$/,'');C.k=$('#sk').value.trim();C.e=$('#se').value.trim();
+ try{ss('Conectando…');await auth({email:C.e,password:$('#sp').value},'password');$('#sp').value='';
+  await pull();await sync();H();ss('Conectado ✓')}catch(e){C.t=null;ss('Erro: '+e.message)}};
+$('#fin').onclick=async()=>{
+ if(!S.items.length)return alert('O carrinho está vazio.');
+ if(!confirm(C.t?'Finalizar esta compra e começar outra?':'Sem a nuvem conectada, a compra finalizada não vai para o histórico. Finalizar mesmo assim?'))return;
+ clearTimeout(pt);
+ if(C.t&&!(await sync('finalizada')))return alert('Sem conexão. Tente finalizar quando tiver internet; a compra continua salva no aparelho.');
+ S={items:[],cupom:''};loc();R();H();go(0)};
+document.querySelector('nav [data-t="3"]').addEventListener('click',H);
+addEventListener('online',push);
+$('#su').value=C.u||'https://bgxrgoqnaoadczhkewmx.supabase.co';$('#sk').value=C.k||'sb_publishable_VZOzMYPs85a73nQjwgj-Sw_SYtR2wKl';$('#se').value=C.e||'';
+if(C.t){ss('Conectado ✓');pull().then(()=>push()).catch(()=>ss('Sem conexão com a nuvem'))}
+R();
+</script></body></html>
